@@ -44,9 +44,9 @@ public class IntrinsicsCalibration extends LinearOpMode {
         List<Mat> imgPoints = new ArrayList<>(); //Our image points
 
         //Telemetry Check booleans
-        boolean cameraMatWrite = false;
-        boolean distCoeffsMatWrite = false;
-        boolean intrinsicsLoaded = false;
+        boolean cameraMatWrite;
+        boolean distCoeffsMatWrite;
+        boolean calibrated = false;
 
         int imgCount = 0;
 
@@ -73,21 +73,19 @@ public class IntrinsicsCalibration extends LinearOpMode {
                 cameraMatWrite = loader.writeMatFile(cameraMatrix, "camMat.mat");
                 distCoeffsMatWrite = loader.writeMatFile(distCoeffs, "distCoeffs.mat");
                 imgCount = 0;
-            }
 
-            //Load intrinsics files on X button press
-            if(currGamePad.x && !prevGamePad.x){
-                intrinsicsLoaded = camera.loadIntrinsics();
+                if(cameraMatWrite && distCoeffsMatWrite){
+                    calibrated = true;
+                }
             }
 
             //Do all the telemetry junk
             telemetry.addData("Status: ", "Active");
             telemetry.addData("Image Count: ", imgCount);
-            telemetry.addData("Camera Matrix: ", cameraMatrix.dump());
-            telemetry.addData("Distortion Coefficients: ", distCoeffs.dump());
-            telemetry.addData("Intrinsics Loaded: ", intrinsicsLoaded);
-            telemetry.addData("Camera Mat File Write: ", cameraMatWrite);
-            telemetry.addData("distance Coefficients Mat Write: ", distCoeffsMatWrite);
+            if(calibrated){
+                telemetry.addData("Camera Matrix: ", cameraMatrix.dump());
+                telemetry.addData("Distortion Coefficients: ", distCoeffs.dump());
+            }
             telemetry.update();
         }
     }
@@ -100,7 +98,7 @@ public class IntrinsicsCalibration extends LinearOpMode {
      * @param imgPoints Your image points
      */
     private void calibrateCamera(Mat cameraMatrix, Mat distCoeffs, List<Mat> objPoints, List<Mat> imgPoints){
-        telemetry.addData("Proc", "Run");
+        telemetry.addLine("Calibrating...");
         telemetry.update();
         List<Mat> rvecs = new ArrayList<>(); //Ignore
         List<Mat> tvecs = new ArrayList<>(); //Ignore
@@ -114,7 +112,7 @@ public class IntrinsicsCalibration extends LinearOpMode {
     }
 
     /**
-     * Simple Pipeline for grabbing images from the camera
+     * Simple pipeline for getting calibration points for camera intrinsics
      * @author Connor Feeney
      */
     private static class Pipeline extends OpenCvPipeline {
@@ -131,7 +129,6 @@ public class IntrinsicsCalibration extends LinearOpMode {
          * @param objPoints The list for object points to be stored in
          * @param imgPoints The list for image points to be stored in
          */
-        //TODO calling this crashes sometimes, i think its because of a multithreading issue (I think i fixed it but haven't tested yet)
         public void procImg(List<Mat> objPoints, List<Mat> imgPoints){
             Size board = new Size(19,19); //Function uses 20x20 chessboard
             //Populate a simple object point list
