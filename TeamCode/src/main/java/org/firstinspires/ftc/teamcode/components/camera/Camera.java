@@ -1,9 +1,9 @@
-package org.firstinspires.ftc.teamcode.components;
+package org.firstinspires.ftc.teamcode.components.camera;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.util.MatLoader;
+import org.firstinspires.ftc.teamcode.components.camera.util.MatLoader;
 
 import org.opencv.core.Mat;
 

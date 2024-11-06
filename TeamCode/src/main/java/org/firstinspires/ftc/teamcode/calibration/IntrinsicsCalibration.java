@@ -4,9 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.components.Camera;
-import org.firstinspires.ftc.teamcode.util.MatLoader;
+import org.firstinspires.ftc.teamcode.components.camera.Camera;
+import org.firstinspires.ftc.teamcode.components.camera.util.MatLoader;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -24,7 +23,7 @@ import java.util.List;
  * Intrinsics Calibration OpMode, Images should be taken a multiple angles
  * @author Connor Feeney
  */
-@TeleOp(name="Intrinsics Calibration", group = "Calibration")
+@TeleOp(name = "Intrinsics Calibration", group = "Calibration")
 public class IntrinsicsCalibration extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
@@ -144,7 +143,7 @@ public class IntrinsicsCalibration extends LinearOpMode {
             Mat cImg = frame.clone(); //Clone the input image data for processing
 
             //Process image
-            Imgproc.cvtColor(cImg, cImg, Imgproc.COLOR_BGR2GRAY);
+            Imgproc.cvtColor(cImg, cImg, Imgproc.COLOR_RGB2GRAY);
             MatOfPoint2f corners = new MatOfPoint2f();
             boolean found = Calib3d.findChessboardCorners(cImg, board, corners);
             if(found){
