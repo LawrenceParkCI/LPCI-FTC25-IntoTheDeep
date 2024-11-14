@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 /**
@@ -12,7 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
  * A class for using a mechanum drive train,
  * This class does not support dead wheel odometry.
  * <br><br>
- * Last Updated: November 7th, 2024
+ * Last Updated: November 14th, 2024
  * @author Connor Feeney
  */
 public class MechanumDrive {
@@ -111,10 +112,10 @@ public class MechanumDrive {
         double denominator = Math.max(Math.abs(lY) + Math.abs(lX) + Math.abs(rX), 1);
 
         //Set all motor powers
-        leftFrontMotor.setPower((-lY + lX + rX) / denominator);
-        leftBackMotor.setPower((-lY - lX + rX) / denominator);
-        rightFrontMotor.setPower((-lY - lX - rX) / denominator);
-        rightBackMotor.setPower((-lY + lX - rX) / denominator);
+        leftFrontMotor.setPower((lY + lX + rX) / denominator);
+        leftBackMotor.setPower((lY - lX + rX) / denominator);
+        rightFrontMotor.setPower((lY - lX - rX) / denominator);
+        rightBackMotor.setPower((lY + lX - rX) / denominator);
     }
 
     /**
@@ -128,9 +129,8 @@ public class MechanumDrive {
         double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
         //Rotate motion vectors
-        double y = -lY;
-        double rotX = (double) lX * Math.cos(-heading) - y * Math.sin(-heading);
-        double rotY = (double) lX * Math.sin(-heading) - y * Math.cos(-heading);
+        double rotX = (double) lX * Math.cos(-heading) - lY * Math.sin(-heading);
+        double rotY = (double) lX * Math.sin(-heading) + lY * Math.cos(-heading);
 
         //Calculate denominator
         double denominator = Math.max(Math.abs(rotX) + Math.abs(rotY) + Math.abs(rX), 1);
@@ -140,5 +140,20 @@ public class MechanumDrive {
         leftBackMotor.setPower((rotY - rotX + rX) / denominator);
         rightFrontMotor.setPower((rotY - rotX - rX) / denominator);
         rightBackMotor.setPower((rotY + rotX - rX) / denominator);
+    }
+
+    /**
+     * Add drive data to the telemetry buffer,
+     * You still must call telemetry.update()
+     * @param telemetry Your telemetry object
+     */
+    public void bufferTelemetry(Telemetry telemetry){
+        telemetry.addData("Drive Mode: ", this.getFieldCentric() ? "Field Centric" : "Driver Centric");
+
+        telemetry.addData("Left Front Power: ", leftFrontMotor.getPower());
+        telemetry.addData("Left Back Power: ", leftBackMotor.getPower());
+
+        telemetry.addData("Right Front Power: ", rightFrontMotor.getPower());
+        telemetry.addData("Right Back Power: ", rightBackMotor.getPower());
     }
 }
