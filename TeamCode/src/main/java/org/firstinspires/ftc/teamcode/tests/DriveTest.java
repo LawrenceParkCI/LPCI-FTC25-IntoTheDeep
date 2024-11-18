@@ -21,13 +21,13 @@ public class DriveTest extends LinearOpMode {
         DcMotor rightBackMotor = hardwareMap.get(DcMotor.class, "rightBackMotor");
 
         //Internally set motor direction (Drive train specific)
-        rightFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightBackMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftFrontMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        leftBackMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightFrontMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightBackMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftBackMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Create drive object and set imu orientation
-        MechanumDrive d = new MechanumDrive(leftFrontMotor, leftBackMotor, rightFrontMotor, rightBackMotor, hardwareMap);
+        MechanumDrive d = new MechanumDrive(leftFrontMotor, leftBackMotor, rightFrontMotor, rightBackMotor, this);
         d.setImuOrientation(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.FORWARD);
 
         Gamepad currGamepad = new Gamepad();
@@ -52,10 +52,7 @@ public class DriveTest extends LinearOpMode {
 
             //Update telemetry
             telemetry.addData("Status: ", "Active");
-            d.bufferTelemetry(telemetry);
-            telemetry.addData("lY: ", -gamepad1.left_stick_y);
-            telemetry.addData("lX: ", gamepad1.left_stick_x);
-            telemetry.addData("rY: ", gamepad1.right_stick_x);
+            d.bufferTelemetry();
             telemetry.update();
         }
     }
