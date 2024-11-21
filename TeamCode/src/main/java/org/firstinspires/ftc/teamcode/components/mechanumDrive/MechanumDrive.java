@@ -9,12 +9,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.components.mechanumDrive.util.FullStateController;
 import org.firstinspires.ftc.teamcode.components.mechanumDrive.util.Point;
 
+import java.util.List;
+
 /**
  * FTC Into The Deep 24-25 <br>
  * A class for using a mechanum drive train,
  * This class does not support dead wheel odometry.
  * <br><br>
- * Last Updated: November 14th, 2024
+ * Last Updated: November 21st, 2024
  * @author Connor Feeney
  */
 public class MechanumDrive {
@@ -27,6 +29,7 @@ public class MechanumDrive {
     private Action driveAction = this::driveRobotCentric;
     private boolean fieldCentric = false;
 
+    //Control Hub Internals
     private final LinearOpMode opMode;
     private final IMU imu;
 
@@ -107,7 +110,7 @@ public class MechanumDrive {
     }
 
     /**
-     * Set the amount of encoder ticks per rotation of a wheel
+     * Set the amount of encoder ticks per rotation of a wheel.
      * @param TPR ticks per rotation
      */
     public void setTPR(double TPR){
@@ -115,7 +118,7 @@ public class MechanumDrive {
     }
 
     /**
-     * Set your robots wheel diameter
+     * Set your robots wheel diameter.
      * @param wheelDiam wheel diameter
      */
     public void setWheelDiam(double wheelDiam){
@@ -123,7 +126,7 @@ public class MechanumDrive {
     }
 
     /**
-     * Update the robots current position and velocity
+     * Update the robots current position and velocity.
      */
     private void updatePositionVelocity(){
         //Calculate total xy displacement in encoder ticks
@@ -298,11 +301,23 @@ public class MechanumDrive {
             //Drive robot with calculated power
             this.driveFieldCentric((float) yP, (float) xP, 0);
         }
+        this.driveFieldCentric(0,0,0); //Set all motor powers to zero
+    }
+
+    /**
+     * Flow a generated trajectory at a target velocity.
+     * @param path The path for the robot to follow
+     * @param velocity Target velocity
+     */
+    public void followTrajectory(List<Point> path, double velocity){
+        for (Point point : path) {
+            this.driveTo(point.getX(), point.getY(), velocity);
+        }
     }
 
     /**
      * Add drive data to the telemetry buffer,
-     * You still must call telemetry.update()
+     * You still must call telemetry.update().
      */
     public void bufferTelemetry(){
         opMode.telemetry.addData("Drive Mode: ", this.getFieldCentric() ? "Field Centric" : "Driver Centric");
