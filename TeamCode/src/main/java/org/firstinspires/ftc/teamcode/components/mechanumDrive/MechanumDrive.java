@@ -330,5 +330,7 @@ public class MechanumDrive {
 
         opMode.telemetry.addData("Position: ", position.toString());
         opMode.telemetry.addData("Velocity: ", Math.sqrt(Math.pow(velocityX, 2) + Math.pow(velocityY, 2)));
+
+        opMode.telemetry.addData("LF LB RF RB: ", leftFrontMotor.getCurrentPosition() + " | " + leftBackMotor.getCurrentPosition() + " | " + rightFrontMotor.getCurrentPosition() + " | " + rightBackMotor.getCurrentPosition());
     }
 }

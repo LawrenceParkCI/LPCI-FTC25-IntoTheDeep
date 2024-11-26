@@ -21,10 +21,10 @@ public class DriveTest extends LinearOpMode {
         DcMotor rightBackMotor = hardwareMap.get(DcMotor.class, "rightBackMotor");
 
         //Internally set motor direction (Drive train specific)
-        rightFrontMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightBackMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        leftFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBackMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBackMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftFrontMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftBackMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         //Create drive object and set imu orientation
         MechanumDrive d = new MechanumDrive(leftFrontMotor, leftBackMotor, rightFrontMotor, rightBackMotor, this);
