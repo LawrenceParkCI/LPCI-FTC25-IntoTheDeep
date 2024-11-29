@@ -29,7 +29,7 @@ public class DriveTest extends LinearOpMode {
         leftBackMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         //Create drive object and set imu orientation
-        MechanumDrive d = new MechanumDrive(leftFrontMotor, leftBackMotor, rightFrontMotor, rightBackMotor, hardwareMap);
+        MechanumDrive d = new MechanumDrive(leftFrontMotor, leftBackMotor, rightFrontMotor, rightBackMotor, this);
         d.setImuOrientation(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.FORWARD);
 
         Gamepad currGamepad = new Gamepad();
@@ -54,10 +54,7 @@ public class DriveTest extends LinearOpMode {
 
             //Update telemetry
             telemetry.addData("Status: ", "Active");
-            d.bufferTelemetry(telemetry);
-            telemetry.addData("lY: ", -gamepad1.left_stick_y);
-            telemetry.addData("lX: ", gamepad1.left_stick_x);
-            telemetry.addData("rY: ", gamepad1.right_stick_x);
+            d.bufferTelemetry();
             telemetry.update();
         }
     }
