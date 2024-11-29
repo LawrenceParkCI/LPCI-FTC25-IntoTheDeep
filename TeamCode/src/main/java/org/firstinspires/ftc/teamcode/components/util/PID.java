@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.components.lift.util;
+package org.firstinspires.ftc.teamcode.components.util;
 
 public class PID {
     double kp, ki, kd;
