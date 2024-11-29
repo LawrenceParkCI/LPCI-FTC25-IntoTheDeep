@@ -4,12 +4,15 @@ public class PID {
     double kp, ki, kd;
 
     double lastError = 0;
+    double lastState = 0;
 
     double a;
     double lastFilterEstimate = 0;
 
     double maxIntegral = 0;
     double integralSum = 0;
+
+    double lastTimeNano = 0;
 
     /**
      * {@link PID PID} Constructor
@@ -65,6 +68,17 @@ public class PID {
         this.maxIntegral = maxIntegral;
     }
 
+    public void setLowPassFilter(double a) throws IllegalArgumentException{
+        if(a < 0){
+            throw new IllegalArgumentException("a value must be greater than 0");
+        }
+        if(a > 1){
+            throw new IllegalArgumentException("a value cannot be greater than 1");
+        }
+
+        this.a = a;
+    }
+
     public void setConstants(double kp, double ki, double kd, double a, double maxIntegral) throws IllegalArgumentException{
         //Check errors
         if(kp < 0 || ki < 0 || kd < 0){
@@ -88,7 +102,36 @@ public class PID {
         this.a = a;
     }
 
-    public double calculate(){
-        return 0;
+    public double calculate(double currentState, double targetState){
+        double error = targetState - currentState;
+        double deltaError = error - lastError;
+
+        double currentFilterEstimate = (a * lastFilterEstimate) + (1-a) * deltaError;
+        lastFilterEstimate = currentFilterEstimate;
+
+        double deltaTime = (System.nanoTime() - lastTimeNano)/1e-9;
+        double derivative = currentFilterEstimate/deltaTime;
+
+        integralSum += error * deltaTime;
+
+        if(maxIntegral > 0 && integralSum > maxIntegral){
+            integralSum = 0;
+        }
+
+        if(maxIntegral > 0 && integralSum < -maxIntegral){
+            integralSum = 0;
+        }
+
+        if(currentState != lastState){
+            integralSum = 0;
+        }
+
+        double out = (kp * error) + (ki * integralSum) + (kd * derivative);
+
+        lastError = error;
+        lastState = currentState;
+        lastTimeNano = System.nanoTime();
+
+        return out;
     }
 }
