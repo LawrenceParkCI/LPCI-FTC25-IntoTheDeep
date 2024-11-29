@@ -54,7 +54,7 @@ public class Intake {
         if(rotation > 360 || rotation < 0){
             throw new IllegalArgumentException("rotation must be 0-360");
         }
-        targetRotation = (rotation/360) * maxEncoderValue;
+        targetRotation = (rotation/360);
         this.extended = extended;
     }
 

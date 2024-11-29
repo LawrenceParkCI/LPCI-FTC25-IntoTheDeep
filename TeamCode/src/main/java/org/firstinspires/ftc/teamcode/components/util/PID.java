@@ -102,6 +102,10 @@ public class PID {
         this.a = a;
     }
 
+    public double getIntegralSum(){
+        return integralSum;
+    }
+
     public double calculate(double currentState, double targetState){
         double error = targetState - currentState;
         double deltaError = error - lastError;
@@ -109,7 +113,7 @@ public class PID {
         double currentFilterEstimate = (a * lastFilterEstimate) + (1-a) * deltaError;
         lastFilterEstimate = currentFilterEstimate;
 
-        double deltaTime = (System.nanoTime() - lastTimeNano)/1e-9;
+        double deltaTime = (System.nanoTime() - lastTimeNano)/1e+9;
         double derivative = currentFilterEstimate/deltaTime;
 
         integralSum += error * deltaTime;
@@ -123,7 +127,7 @@ public class PID {
         }
 
         if(currentState != lastState){
-            integralSum = 0;
+            integralSum -= error * deltaTime;
         }
 
         double out = (kp * error) + (ki * integralSum) + (kd * derivative);

@@ -28,7 +28,7 @@ public class LiftTest extends LinearOpMode {
         DcMotor armMotor = hardwareMap.get(DcMotor.class, "armMotor");
         armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        Lift lift = new Lift(armMotor, 1,this);
+        Lift lift = new Lift(armMotor, 6800,this);
 
         Gamepad currentGamepad = new Gamepad();
         Gamepad prevGamepad = new Gamepad();
@@ -55,8 +55,6 @@ public class LiftTest extends LinearOpMode {
             lift.setPidConstant(KP, KI, KD, A, MAX_INTEGRAL);
             lift.setGravityOffset(KG);
             lift.update();
-
-            armMotor.setPower(-gamepad1.left_stick_y);
 
             telemetry.addData("Status: ", "ACTIVE");
             lift.bufferTelemetry();

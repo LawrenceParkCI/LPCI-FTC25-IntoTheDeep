@@ -38,9 +38,10 @@ public class Lift {
     }
 
     public void update(){
-        double error = (armMotor.getCurrentPosition()/ maxEncoderValue) - targetHeight;
+        double error = targetHeight - (armMotor.getCurrentPosition() / maxEncoderValue);
         if(Math.abs(error) > Math.abs(tolerance)){
-            armMotor.setPower(pid.calculate(armMotor.getCurrentPosition() / maxEncoderValue, targetHeight) + kg);
+            double power = pid.calculate(armMotor.getCurrentPosition() / maxEncoderValue, targetHeight) + kg;
+            armMotor.setPower(power);
         }
     }
 
@@ -59,11 +60,13 @@ public class Lift {
         if(height > 1 || height < 0){
             throw new IllegalArgumentException("Height Must > 1 and < 0");
         }
-        targetHeight = maxEncoderValue * height;
+        targetHeight = height;
     }
 
     public void bufferTelemetry(){
         opMode.telemetry.addData("Arm Position: ", armMotor.getCurrentPosition() / maxEncoderValue);
         opMode.telemetry.addData("Arm Speed: ", armMotor.getPower());
+
+        opMode.telemetry.addData("Integral Sum: ", pid.getIntegralSum());
     }
 }
