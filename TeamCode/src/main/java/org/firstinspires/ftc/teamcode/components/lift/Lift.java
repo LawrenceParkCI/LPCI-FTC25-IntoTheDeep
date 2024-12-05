@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.components.util.PID;
 public class Lift {
     private final LinearOpMode opMode;
     private final DcMotor armMotor;
+    private final DcMotor dumbMotor;
     
     private double maxEncoderValue;
     private double tolerance = 0;
@@ -17,11 +18,16 @@ public class Lift {
     PID pid = new PID(0,0,0);
     double kg = 0;
 
-    public Lift(DcMotor armMotor, double maxEncoderValue, LinearOpMode opMode) throws IllegalArgumentException{
+    public Lift(DcMotor armMotor, DcMotor dumbMotor, double maxEncoderValue, LinearOpMode opMode) throws IllegalArgumentException{
         this.opMode = opMode;
+
         this.armMotor = armMotor;
         this.armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        this.dumbMotor = dumbMotor;
+        this.dumbMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.dumbMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         if(maxEncoderValue <= 0){
             throw new IllegalArgumentException("Max Encoder Ticks must be > 0");
@@ -42,6 +48,7 @@ public class Lift {
         if(Math.abs(error) > Math.abs(tolerance)){
             double power = pid.calculate(armMotor.getCurrentPosition() / maxEncoderValue, targetHeight) + kg;
             armMotor.setPower(power);
+            dumbMotor.setPower(power);
         }
     }
 
@@ -64,9 +71,7 @@ public class Lift {
     }
 
     public void bufferTelemetry(){
-        opMode.telemetry.addData("Arm Position: ", armMotor.getCurrentPosition() / maxEncoderValue);
-        opMode.telemetry.addData("Arm Speed: ", armMotor.getPower());
-
-        opMode.telemetry.addData("Integral Sum: ", pid.getIntegralSum());
+        opMode.telemetry.addData("Arm Position: ", armMotor.getCurrentPosition());
+        opMode.telemetry.addData("Arm Power: ", armMotor.getPower());
     }
 }

@@ -127,7 +127,7 @@ public class PID {
         }
 
         if(currentState != lastState){
-            integralSum -= error * deltaTime;
+            integralSum = 0;
         }
 
         double out = (kp * error) + (ki * integralSum) + (kd * derivative);
