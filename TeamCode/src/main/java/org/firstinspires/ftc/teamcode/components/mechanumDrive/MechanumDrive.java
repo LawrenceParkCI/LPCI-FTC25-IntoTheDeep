@@ -320,17 +320,9 @@ public class MechanumDrive {
      * You still must call telemetry.update().
      */
     public void bufferTelemetry(){
-        opMode.telemetry.addData("Drive Mode: ", this.getFieldCentric() ? "Field Centric" : "Driver Centric");
-
         opMode.telemetry.addData("Left Front Power: ", leftFrontMotor.getPower());
         opMode.telemetry.addData("Left Back Power: ", leftBackMotor.getPower());
-
         opMode.telemetry.addData("Right Front Power: ", rightFrontMotor.getPower());
         opMode.telemetry.addData("Right Back Power: ", rightBackMotor.getPower());
-
-        opMode.telemetry.addData("Position: ", position.toString());
-        opMode.telemetry.addData("Velocity: ", Math.sqrt(Math.pow(velocityX, 2) + Math.pow(velocityY, 2)));
-
-        opMode.telemetry.addData("LF LB RF RB: ", leftFrontMotor.getCurrentPosition() + " | " + leftBackMotor.getCurrentPosition() + " | " + rightFrontMotor.getCurrentPosition() + " | " + rightBackMotor.getCurrentPosition());
     }
 }
