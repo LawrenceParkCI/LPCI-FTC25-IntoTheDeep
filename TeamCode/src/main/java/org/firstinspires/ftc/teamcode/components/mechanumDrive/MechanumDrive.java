@@ -45,7 +45,8 @@ public class MechanumDrive {
     private double velocityY = 0;
 
     //Positions
-    private final Point lastPosition = new Point(0,0);
+    private final Point prevEncoderSum = new Point(0, 0);
+    private final Point prevPosition = new Point(0,0);
     private final Point position = new Point(0,0);
 
     //Movement constants
@@ -80,6 +81,8 @@ public class MechanumDrive {
         //Get the imu pointer
         imu = this.opMode.hardwareMap.get(IMU.class, "imu");
         imu.resetYaw();
+
+        lastTime = System.currentTimeMillis();
     }
 
     /**
@@ -129,35 +132,43 @@ public class MechanumDrive {
      * Update the robots current position and velocity.
      */
     private void updatePositionVelocity(){
-        //Calculate total xy displacement in encoder ticks
-        double yEncoderSum = (double) (leftFrontMotor.getCurrentPosition() + leftFrontMotor.getCurrentPosition() + rightFrontMotor.getCurrentPosition() + rightBackMotor.getCurrentPosition()) / 4;
-        double xEncoderSum = (double) (leftFrontMotor.getCurrentPosition() - leftBackMotor.getCurrentPosition() - rightFrontMotor.getCurrentPosition() + rightBackMotor.getCurrentPosition()) / 4;
+        //Get absolute position
+        int longitudinalSum = (leftFrontMotor.getCurrentPosition() + leftBackMotor.getCurrentPosition() + rightFrontMotor.getCurrentPosition() + rightBackMotor.getCurrentPosition()) / 4;
+        int lateralSum = (leftFrontMotor.getCurrentPosition() - leftBackMotor.getCurrentPosition() - rightFrontMotor.getCurrentPosition() + rightBackMotor.getCurrentPosition()) / 4;
 
-        //Convert to displacement in m
-        double yDisplacement = yEncoderSum * ((wheelDiam * Math.PI)/ TPR);
-        double xDisplacement = xEncoderSum * ((wheelDiam * Math.PI) / TPR);
+        //Calculate change in absolute position (robot frame)
+        int deltaY = (int) (longitudinalSum - prevEncoderSum.getY());
+        int deltaX = (int) (lateralSum - prevEncoderSum.getX());
 
-        //Rotate displacement to align with field
+        //Store previous encoderSum
+        prevEncoderSum.setY(longitudinalSum);
+        prevEncoderSum.setX(lateralSum);
+
         double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        double rotX = xDisplacement * Math.cos(-heading) - yDisplacement * Math.sin(-heading);
-        double rotY = xDisplacement * Math.sin(-heading) + yDisplacement * Math.cos(-heading);
 
-        //Save previous displacement for velocity
-        lastPosition.setX(position.getX());
-        lastPosition.setY(position.getY());
+        double deltaWorldY;
+        double deltaWorldX;
+        double theta;
+        if(Math.abs(heading) <= Math.PI/2){
+            theta = Math.PI/2 - Math.abs(heading);
+        }else{
+            theta = Math.abs(heading) - Math.PI/2;
+        }
+        theta = heading >= 0 ? theta : theta*-1;
 
-        //Update current position
-        position.setY(rotY);
-        position.setX(rotX);
+        deltaWorldY = (deltaY * Math.sin(theta) + deltaX * Math.sin(theta)) * ((wheelDiam * Math.PI)/TPR);
+        deltaWorldX = (deltaY * Math.cos(theta) + deltaX * Math.cos(theta)) * ((wheelDiam * Math.PI)/TPR);
 
-        //Calculate velocity vectors
-        double currTime = System.currentTimeMillis();
-        double deltaTime = (currTime - lastTime) / 1000;
-        lastTime = currTime;
+        position.setY(position.getY() + deltaWorldY);
+        position.setX(position.getX() + deltaWorldX);
 
-        //Update velocity vectors
-        velocityX = (position.getX() - lastPosition.getX()) / deltaTime;
-        velocityY = (position.getY() - lastPosition.getY()) / deltaTime;
+        double deltaPositionY = position.getY() - prevPosition.getY();
+        double deltaPositionX = position.getX() - prevPosition.getX();
+
+        double deltaTime = (System.currentTimeMillis() - lastTime) / 1000;
+
+        velocityY = deltaPositionY / deltaTime;
+        velocityX = deltaPositionX / deltaTime;
     }
 
     /**
@@ -276,32 +287,7 @@ public class MechanumDrive {
      * @param velocity Target velocity in m/s
      */
     public void driveTo(double x, double y, double velocity){
-        //Assign full state controllers
-        FullStateController xController = new FullStateController(kp, kv);
-        FullStateController yController = new FullStateController(kp, kv);
 
-        //Calculate position error
-        double positionErrorX = x - position.getX();
-        double positionErrorY = y - position.getY();
-
-        //Break velocity into vectors
-        double theta = Math.atan2(y, x);
-        double tVelocityX = velocity * Math.cos(theta);
-        double tVelocityY = velocity * Math.sin(theta);
-
-        //Run motors until position is within tolerance values
-        while (opMode.opModeIsActive() && (Math.abs(positionErrorX) > tolerance && Math.abs(positionErrorY) > tolerance)){
-            //Get a newly updated position and velocity
-            this.updatePositionVelocity();
-
-            //Calculate non rotated motor powers
-            double xP = xController.calculate(position.getX(), x, velocityX, tVelocityX);
-            double yP = yController.calculate(position.getY(), y, velocityY, tVelocityY);
-
-            //Drive robot with calculated power
-            this.driveFieldCentric((float) yP, (float) xP, 0);
-        }
-        this.driveFieldCentric(0,0,0); //Set all motor powers to zero
     }
 
     /**

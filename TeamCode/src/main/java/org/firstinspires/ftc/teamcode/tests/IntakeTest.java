@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.components.lift.Lift;
 
 @TeleOp(name = "Intake Test", group = "Test")
 @Config
-//@Disabled
+@Disabled
 public class IntakeTest extends LinearOpMode {
     public static double KP = 0;
     public static double KI = 0;
