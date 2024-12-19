@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.opModes;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -14,6 +15,7 @@ import org.firstinspires.ftc.teamcode.components.mechanumDrive.MechanumDrive;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "FTC 24-25 TeleOp", group = "TeleOp")
 
+@Disabled
 public class TeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {

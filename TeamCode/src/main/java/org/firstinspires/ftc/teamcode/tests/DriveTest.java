@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.components.mechanumDrive.MechanumDrive;
 
-@Disabled
 @TeleOp(name = "DriveTest Test", group = "Test")
 @Config
 public class DriveTest extends LinearOpMode {
