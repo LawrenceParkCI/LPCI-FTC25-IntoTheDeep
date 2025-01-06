@@ -45,7 +45,7 @@ public class TeleOp extends LinearOpMode {
         TouchSensor extendedSensor = hardwareMap.get(TouchSensor.class, "extendedSensor");
         TouchSensor retractedSensor = hardwareMap.get(TouchSensor.class, "retractedSensor");
 
-        Intake intake = new Intake(intakeServo, rackServo, intakeMotor, extendedSensor, retractedSensor, 1440, this);
+        //Intake intake = new Intake(intakeServo, rackServo, intakeMotor, extendedSensor, retractedSensor, 1440, this);
 
         Gamepad currGamepad = new Gamepad();
         Gamepad prevGamepad = new Gamepad();
@@ -72,13 +72,13 @@ public class TeleOp extends LinearOpMode {
             switch (intakeState){
                 case 0:
                 case 2:
-                    intake.runIntake(false);
+                    //intake.runIntake(false);
                     break;
                 case 1:
-                    intake.runIntake(true);
+                    //intake.runIntake(true);
                     break;
                 case 3:
-                    intake.reverseIntake(true);
+                    //intake.reverseIntake(true);
                     break;
             }
 
@@ -99,7 +99,7 @@ public class TeleOp extends LinearOpMode {
             }
 
             if(currGamepad.x && !prevGamepad.x){
-                intake.setPosition(0, !intake.getExtended());
+                //intake.setPosition(0, !intake.getExtended());
             }
 
             if(currGamepad.left_bumper){
@@ -112,7 +112,7 @@ public class TeleOp extends LinearOpMode {
 
             d.drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
             lift.update();
-            intake.update();
+            //intake.update();
 
             telemetry.addData("Status: ", "ACTIVE");
             telemetry.update();
