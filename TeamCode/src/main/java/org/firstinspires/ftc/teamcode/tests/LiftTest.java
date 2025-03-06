@@ -12,7 +12,6 @@ import org.firstinspires.ftc.teamcode.components.lift.Lift;
 
 @TeleOp(name = "Lift Test", group = "Test")
 @Config
-@Disabled
 public class LiftTest extends LinearOpMode {
     public static double KP = 0;
     public static double KI = 0;
@@ -25,17 +24,14 @@ public class LiftTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        DcMotor armMotor = hardwareMap.get(DcMotor.class, "armMotor");
-        DcMotor dumbMotor = hardwareMap.get(DcMotor.class, "dumbMotor");
+        DcMotor liftMotor = hardwareMap.get(DcMotor.class, "liftMotor");
+        DcMotor liftMotorD = hardwareMap.get(DcMotor.class, "liftMotorD");
 
-        Lift lift = new Lift(armMotor, dumbMotor,7000,this);
-        lift.setPidConstant(0, 0, 0, 0,0);
+        Lift lift = new Lift(liftMotor, liftMotorD,7000,this);
+        lift.setPIDConstant(0, 0, 0, 0,0);
 
         Gamepad currentGamepad = new Gamepad();
         Gamepad prevGamepad = new Gamepad();
-
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-        telemetry = dashboard.getTelemetry();
         telemetry.addData("Status: ", "INIT");
         telemetry.update();
 
@@ -55,11 +51,11 @@ public class LiftTest extends LinearOpMode {
             }
 
             if(currentGamepad.dpad_up){
-                armMotor.setPower(-gamepad1.left_stick_y);
-                dumbMotor.setPower(-gamepad1.left_stick_y);
+                liftMotor.setPower(-gamepad1.left_stick_y);
+                liftMotorD.setPower(-gamepad1.left_stick_y);
             }
 
-            lift.setPidConstant(KP, KI, KD, A, MAX_INTEGRAL);
+            lift.setPIDConstant(KP, KI, KD, A, MAX_INTEGRAL);
             lift.setGravityOffset(KG);
             lift.update();
 

@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.components.mechanumDrive.MechanumDrive;
 
 @TeleOp(name = "DriveTest Test", group = "Test")
 @Config
+@Disabled
 public class DriveTest extends LinearOpMode {
 
     @Override
@@ -48,6 +49,13 @@ public class DriveTest extends LinearOpMode {
             //Switch driving mode on gamepad a press
             if(currGamepad.a && !prevGamepad.a){
                 d.setFieldCentric(!d.getFieldCentric());
+            }
+
+            if(currGamepad.right_trigger > 0){
+                double modifier = (2 - currGamepad.right_trigger) * 0.5;
+                d.setSpeedModifier(modifier);
+            }else{
+                d.setSpeedModifier(1);
             }
 
             //Drive the robot

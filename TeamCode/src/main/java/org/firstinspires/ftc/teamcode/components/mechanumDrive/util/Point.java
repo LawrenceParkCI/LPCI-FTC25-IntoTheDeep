@@ -89,7 +89,7 @@ public class Point {
     @Override
     public boolean equals(@Nullable Object obj) {
         assert obj != null;
-        if(obj.getClass() == this.getClass()){
+        if(obj instanceof Point){
             return ((Point) obj).getX() == this.getX() && ((Point) obj).getY() == this.getY();
         }
 

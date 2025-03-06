@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.components.mechanumDrive.util.FullStateController;
 import org.firstinspires.ftc.teamcode.components.mechanumDrive.util.Point;
 
 import java.util.List;
@@ -16,7 +15,7 @@ import java.util.List;
  * A class for using a mechanum drive train,
  * This class does not support dead wheel odometry.
  * <br><br>
- * Last Updated: November 21st, 2024
+ * Last Updated: January 10th, 2025
  * @author Connor Feeney
  */
 public class MechanumDrive {
@@ -39,22 +38,17 @@ public class MechanumDrive {
     private final DcMotor rightFrontMotor;
     private final DcMotor rightBackMotor;
 
-    //Velocity
-    private double lastTime = 0;
-    private double velocityX = 0;
-    private double velocityY = 0;
-
     //Positions
-    private final Point prevEncoderSum = new Point(0, 0);
-    private final Point prevPosition = new Point(0,0);
+    private int prevEncoderLF = 0;
+    private int prevEncoderLB = 0;
+    private int prevEncoderRF = 0;
+    private int prevEncoderRB = 0;
+
     private final Point position = new Point(0,0);
 
-    //Movement constants
-    private double tolerance = 0;
-    private double kp = 0;
-    private double kv = 0;
-    private double TPR = 720;
     private double wheelDiam = 0.1;
+
+    private double speedModifier = 1.0;
 
     /**
      * MechanumDrive Constructor, All motors should have a positive forward power.
@@ -81,8 +75,6 @@ public class MechanumDrive {
         //Get the imu pointer
         imu = this.opMode.hardwareMap.get(IMU.class, "imu");
         imu.resetYaw();
-
-        lastTime = System.currentTimeMillis();
     }
 
     /**
@@ -117,7 +109,7 @@ public class MechanumDrive {
      * @param TPR ticks per rotation
      */
     public void setTPR(double TPR){
-        this.TPR = TPR;
+
     }
 
     /**
@@ -125,50 +117,33 @@ public class MechanumDrive {
      * @param wheelDiam wheel diameter
      */
     public void setWheelDiam(double wheelDiam){
-        this.wheelDiam = wheelDiam;
+
     }
 
     /**
-     * Update the robots current position and velocity.
+     * Update the robots current position.
      */
-    private void updatePositionVelocity(){
-        //Get absolute position
-        int longitudinalSum = (leftFrontMotor.getCurrentPosition() + leftBackMotor.getCurrentPosition() + rightFrontMotor.getCurrentPosition() + rightBackMotor.getCurrentPosition()) / 4;
-        int lateralSum = (leftFrontMotor.getCurrentPosition() - leftBackMotor.getCurrentPosition() - rightFrontMotor.getCurrentPosition() + rightBackMotor.getCurrentPosition()) / 4;
+    private void updatePosition(){
+        double deltaLF = (leftFrontMotor.getCurrentPosition() - prevEncoderLF);
+        double deltaLB = (leftBackMotor.getCurrentPosition() - prevEncoderLB);
+        double deltaRF = (rightFrontMotor.getCurrentPosition() - prevEncoderRF);
+        double deltaRB = (rightBackMotor.getCurrentPosition() - prevEncoderRB);
 
-        //Calculate change in absolute position (robot frame)
-        int deltaY = (int) (longitudinalSum - prevEncoderSum.getY());
-        int deltaX = (int) (lateralSum - prevEncoderSum.getX());
+        prevEncoderLF = leftFrontMotor.getCurrentPosition();
+        prevEncoderLB = leftBackMotor.getCurrentPosition();
+        prevEncoderRF = rightBackMotor.getCurrentPosition();
+        prevEncoderRB = rightBackMotor.getCurrentPosition();
 
-        //Store previous encoderSum
-        prevEncoderSum.setY(longitudinalSum);
-        prevEncoderSum.setX(lateralSum);
+        double deltaX = (deltaLF - deltaLB - deltaRF + deltaRB) / 4;
+        double deltaY = (deltaLF + deltaLB + deltaRF + deltaRB) / 4;
 
         double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-        double deltaWorldY;
-        double deltaWorldX;
-        double theta;
-        if(Math.abs(heading) <= Math.PI/2){
-            theta = Math.PI/2 - Math.abs(heading);
-        }else{
-            theta = Math.abs(heading) - Math.PI/2;
-        }
-        theta = heading >= 0 ? theta : theta*-1;
+        double deltaWorldX = deltaX * Math.cos(-heading) - deltaY * Math.sin(-heading);
+        double deltaWorldY = deltaX * Math.sin(-heading) + deltaY * Math.cos(-heading);
 
-        deltaWorldY = (deltaY * Math.sin(theta) + deltaX * Math.sin(theta)) * ((wheelDiam * Math.PI)/TPR);
-        deltaWorldX = (deltaY * Math.cos(theta) + deltaX * Math.cos(theta)) * ((wheelDiam * Math.PI)/TPR);
-
-        position.setY(position.getY() + deltaWorldY);
-        position.setX(position.getX() + deltaWorldX);
-
-        double deltaPositionY = position.getY() - prevPosition.getY();
-        double deltaPositionX = position.getX() - prevPosition.getX();
-
-        double deltaTime = (System.currentTimeMillis() - lastTime) / 1000;
-
-        velocityY = deltaPositionY / deltaTime;
-        velocityX = deltaPositionX / deltaTime;
+        position.setX(position.getX() + (deltaWorldX  * (wheelDiam * Math.PI)));
+        position.setY(position.getY() + (deltaWorldY  * (wheelDiam * Math.PI)));
     }
 
     /**
@@ -201,7 +176,11 @@ public class MechanumDrive {
      */
     public void drive(float lY, float lX, float rX){
         driveAction.execute(lY, lX, rX); //Calls to whatever action is set based on setFieldCentric(Boolean fieldCentric)
-        this.updatePositionVelocity();
+        this.updatePosition();
+    }
+
+    public void setSpeedModifier(double mod){
+        this.speedModifier = mod;
     }
 
     /**
@@ -215,10 +194,10 @@ public class MechanumDrive {
         double denominator = Math.max(Math.abs(lY) + Math.abs(lX) + Math.abs(rX), 1);
 
         //Set all motor powers
-        leftFrontMotor.setPower((lY + lX + rX) / denominator);
-        leftBackMotor.setPower((lY - lX + rX) / denominator);
-        rightFrontMotor.setPower((lY - lX - rX) / denominator);
-        rightBackMotor.setPower((lY + lX - rX) / denominator);
+        leftFrontMotor.setPower(((lY + lX + rX) / denominator) * speedModifier);
+        leftBackMotor.setPower(((lY - lX + rX) / denominator) * speedModifier);
+        rightFrontMotor.setPower(((lY - lX - rX) / denominator) * speedModifier);
+        rightBackMotor.setPower(((lY + lX - rX) / denominator) * speedModifier);
     }
 
     /**
@@ -227,7 +206,7 @@ public class MechanumDrive {
      * @param lX X-Component of the translation vector
      * @param rX Rotation vector
      */
-    private void driveFieldCentric(float lY, float lX, float rX){
+    private void driveFieldCentric(float lY, float lX, float rX) {
         //Get robots current heading
         double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
@@ -239,18 +218,10 @@ public class MechanumDrive {
         double denominator = Math.max(Math.abs(rotX) + Math.abs(rotY) + Math.abs(rX), 1);
 
         //Set all motor powers
-        leftFrontMotor.setPower((rotY + rotX + rX) / denominator);
-        leftBackMotor.setPower((rotY - rotX + rX) / denominator);
-        rightFrontMotor.setPower((rotY - rotX - rX) / denominator);
-        rightBackMotor.setPower((rotY + rotX - rX) / denominator);
-    }
-
-    /**
-     * Get the robots velocity in m/s.
-     * @return Robot velocity in m/s
-     */
-    public double getVelocity(){
-        return Math.sqrt(Math.pow(velocityX, 2) + Math.pow(velocityY, 2)); //Sum velocity vectors
+        leftFrontMotor.setPower(((rotY + rotX + rX) / denominator) * speedModifier);
+        leftBackMotor.setPower(((rotY - rotX + rX) / denominator) * speedModifier);
+        rightFrontMotor.setPower(((rotY - rotX - rX) / denominator) * speedModifier);
+        rightBackMotor.setPower(((rotY + rotX - rX) / denominator) * speedModifier);
     }
 
     /**
@@ -266,38 +237,25 @@ public class MechanumDrive {
      * @param tolerance your max error
      */
     public void setTolerance(double tolerance){
-        this.tolerance = tolerance;
-    }
 
-    /**
-     * Set gain values for autonomous full state controllers.
-     * Note: these will most likely be ver very small values
-     * @param kp Position gain
-     * @param kv Velocity gain
-     */
-    public void setDriveGain(double kp, double kv){
-        this.kp = kp;
-        this.kv = kv;
     }
 
     /**
      * Drive to a target position at a target velocity.
      * @param x Target x position in m
      * @param y Target y position in m
-     * @param velocity Target velocity in m/s
      */
-    public void driveTo(double x, double y, double velocity){
+    public void driveTo(double x, double y){
 
     }
 
     /**
      * Flow a generated trajectory at a target velocity.
      * @param path The path for the robot to follow
-     * @param velocity Target velocity
      */
-    public void followTrajectory(List<Point> path, double velocity){
+    public void followTrajectory(List<Point> path){
         for (Point point : path) {
-            this.driveTo(point.getX(), point.getY(), velocity);
+            this.driveTo(point.getX(), point.getY());
         }
     }
 
@@ -306,9 +264,21 @@ public class MechanumDrive {
      * You still must call telemetry.update().
      */
     public void bufferTelemetry(){
+        opMode.telemetry.addLine("====Drive Data====");
+
+        opMode.telemetry.addLine("---Motor---");
         opMode.telemetry.addData("Left Front Power: ", leftFrontMotor.getPower());
         opMode.telemetry.addData("Left Back Power: ", leftBackMotor.getPower());
         opMode.telemetry.addData("Right Front Power: ", rightFrontMotor.getPower());
         opMode.telemetry.addData("Right Back Power: ", rightBackMotor.getPower());
+
+        opMode.telemetry.addLine("---Position---");
+        opMode.telemetry.addData("Heading: ", imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
+        opMode.telemetry.addData("Position (X, Y): ", position.toString());
+
+        opMode.telemetry.addLine("---Settings---");
+        opMode.telemetry.addData("Drive Mode", fieldCentric? "Field Centric" : "Robot Centric");
+
+        opMode.telemetry.addLine();
     }
 }

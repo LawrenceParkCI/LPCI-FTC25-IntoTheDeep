@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.calibration;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -24,6 +25,7 @@ import java.util.List;
  * @author Connor Feeney
  */
 @TeleOp(name = "Intrinsics Calibration", group = "Calibration")
+@Disabled
 public class IntrinsicsCalibration extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
